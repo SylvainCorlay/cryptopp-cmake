@@ -45,6 +45,9 @@ option(BUILD_SHARED "Build shared library" ON)
 option(BUILD_TESTING "Build library tests" ON)
 option(BUILD_DOCUMENTATION "Use Doxygen to create the HTML based API documentation" OFF)
 option(USE_INTERMEDIATE_OBJECTS_TARGET "Use a common intermediate objects target for the static and shared library targets" ON)
+if (MSVC)
+    set(USE_INTERMEDIATE_OBJECTS_TARGET OFF)
+endif ()
 
 if (CMAKE_VERSION VERSION_LESS 2.8.8 AND USE_INTERMEDIATE_OBJECTS_TARGET)
   message(STATUS "Forcing USE_INTERMEDIATE_OBJECTS_TARGET to OFF - requires CMake >= 2.8.8")
@@ -330,7 +333,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 endif ()
 
 # Enable PIC for all target machines except 32-bit i386 due to register pressures.
-if (NOT CRYPTOPP_I386)
+if (NOT CRYPTOPP_I386 AND NOT MSVC)
 	SET(CMAKE_POSITION_INDEPENDENT_CODE 1)
 endif ()
 
@@ -641,6 +644,11 @@ if (BUILD_SHARED)
 
 	if (NOT CMAKE_VERSION VERSION_LESS 2.8.12)
 		target_include_directories(cryptopp-shared PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> $<INSTALL_INTERFACE:include/cryptopp>)
+	endif ()
+	if (MSVC)
+              message(STATUS "Defining CRYPTOPP_EXPORTS")
+		target_compile_definitions(cryptopp-shared
+                PRIVATE CRYPTOPP_EXPORTS)
 	endif ()
 endif ()
 
